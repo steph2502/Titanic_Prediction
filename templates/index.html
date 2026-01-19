@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Survival Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        #result.show {
+            display: block;
+        }
+        #result.survived {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        #result.not-survived {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        .prediction {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .survived .prediction {
+            color: #28a745;
+        }
+        .not-survived .prediction {
+            color: #dc3545;
+        }
+        .probability {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚓ Titanic Survival Prediction</h1>
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="pclass">Passenger Class:</label>
+                <select id="pclass" name="pclass" required>
+                    <option value="">Select Class</option>
+                    <option value="1">1st Class</option>
+                    <option value="2">2nd Class</option>
+                    <option value="3">3rd Class</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex:</label>
+                <select id="sex" name="sex" required>
+                    <option value="">Select Sex</option>
+                    <option value="0">Male</option>
+                    <option value="1">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" required min="0" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="sibsp">Siblings/Spouses Aboard:</label>
+                <input type="number" id="sibsp" name="sibsp" required min="0" max="10">
+            </div>
+            <div class="form-group">
+                <label for="parch">Parents/Children Aboard:</label>
+                <input type="number" id="parch" name="parch" required min="0" max="10">
+            </div>
+            <div class="form-group">
+                <label for="fare">Fare (£):</label>
+                <input type="number" id="fare" name="fare" required min="0" step="0.01">
+            </div>
+            <button type="submit">Predict Survival</button>
+        </form>
+        <div id="result">
+            <p>Prediction:</p>
+            <div class="prediction" id="prediction"></div>
+            <div class="probability" id="probability"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                pclass: parseInt(document.getElementById('pclass').value),
+                sex: parseInt(document.getElementById('sex').value),
+                age: parseFloat(document.getElementById('age').value),
+                sibsp: parseInt(document.getElementById('sibsp').value),
+                parch: parseInt(document.getElementById('parch').value),
+                fare: parseFloat(document.getElementById('fare').value)
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                const resultDiv = document.getElementById('result');
+                
+                resultDiv.className = data.survived ? 'show survived' : 'show not-survived';
+                document.getElementById('prediction').textContent = 
+                    data.survived ? 'Would Have SURVIVED ✓' : 'Would NOT Have Survived ✗';
+                document.getElementById('probability').textContent = 
+                    `Survival Probability: ${(data.probability * 100).toFixed(1)}%`;
+            } catch (error) {
+                alert('Error making prediction. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
